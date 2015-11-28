@@ -1,7 +1,7 @@
 <?php
 
 /*
-Copyright (c) 2009 Kalliste Consulting, LLC
+Copyright (c) 2010 Kalliste Consulting, LLC
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -23,68 +23,34 @@ THE SOFTWARE.
 */
 
 
-function dbg_enabled() {
-  return config('show_debug');
+function run_in_background($command) {
+  return (int) shell_exec("nohup ".$command." >/dev/null 2>&1 & echo $!");
 }
 
 
-function dbg($info, $label = "") {
-  if ($label != "") {
-    _dbginfo($label.":\n".$info);
-  }
-  else {
-    _dbginfo($info);
-  }
+function is_process_running($pid) {
+  settype($pid, 'integer');
+  exec("ps ".$pid, $state);
+  return(count($state) >= 2);
 }
 
 
-function dbg_export($var, $label = "") {
-  $var = var_export($var, TRUE);
-  dbg($var, $label);
+function process_name($pid) {
+  settype($pid, 'integer');
+  exec("ps ".$pid." | tail -n 1 | cut -c 28-", $state);
+  return reset($state);
 }
 
 
-function dbg_r($info, $label = "") {
-  _dbginfo_r($info, $label);
+function stop_process($pid) {
+  settype($pid, 'integer');
+  exec("kill ".$pid);
 }
 
 
-function _dbginfo($info) {
-  if (dbg_enabled()) {
-    if (php_sapi_name() == 'cli') {
-      print $info."\n";
-    }
-    else {
-      print "<pre>".$info."</pre><br />\n";
-    }
-  }
-}
-
-
-function _dbginfo_r($info, $label) {
-  if (dbg_enabled()) {
-    if (php_sapi_name() == 'cli') {
-      print "\n";
-    }
-    else {
-      print "<pre>\n";
-    }
-    if ($label != "") {
-      if (php_sapi_name() == 'cli') {
-        print $label."\n";
-      }
-      else {
-        print $label.":<br />\n";
-      }
-    }
-    print_r($info);
-    if (php_sapi_name() == 'cli') {
-      print "\n";
-    }
-    else {
-      print "</pre><br />\n";
-    }
-  }
+function hard_stop_process($pid) {
+  settype($pid, 'integer');
+  exec("kill -9 ".$pid);
 }
 
 

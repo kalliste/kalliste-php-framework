@@ -1,7 +1,7 @@
 <?php
 
 /*
-Copyright (c) 2009 Kalliste Consulting, LLC
+Copyright (c) 2009, 2013 Kalliste Consulting, LLC
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -33,12 +33,13 @@ require_once("includes/db/generated.php");
 
 
 function sql_transaction($lines = array(), $return_last_insert_id = TRUE) {
-  sql_rollback();
+  //sql_rollback();
+  sql_begin();
   if (!is_array($lines)) {
     $lines = array($lines);
   }
   foreach ($lines as $line) {
-    sql_query_dbg($line, true);
+    $result = sql_query_dbg($line, true);
   }
   if (count($lines)) {
     if ($return_last_insert_id) {
@@ -48,27 +49,27 @@ function sql_transaction($lines = array(), $return_last_insert_id = TRUE) {
   }
   sql_commit();
   if (count($lines) && !$return_last_insert_id) {
-    $ret = sql_affected_rows();
+    $ret = sql_affected_rows($result);
   }
   return $ret;
 }
 
 
 function generate_delete_sql($table, $conditions) {
-  if (!is_array($conditions)) { dbg("must supply delete condition"); return FALSE; }
-  return "DELETE FROM ".$table.array_to_where($conditions);
+  return "DELETE FROM ".$table.sql_where($conditions);
 }
 
 
 //each record must have the same fields in the same order for this function to work
 function generate_insert_sql($table, $conditions, $records) {
+  $colquote = db_params('column_quote_char');
   if (!is_array($conditions)) { $conditions = array(); }
   if (!is_array($records)) { $records = array(); }  
   if (count($records) > 0) {
     $first = reset($records);
     if (!is_array($first)) { return FALSE; }
     $keys = array_keys(array_merge($first, $conditions));
-    $columns = implode(", ", $keys);
+    $columns = $colquote.implode("$colquote, $colquote", $keys).$colquote;
     $line = sprintf("INSERT INTO %s (%s) VALUES ", $table, $columns);
     $i = 0;
     foreach ($records as $record) {
@@ -84,75 +85,52 @@ function generate_insert_sql($table, $conditions, $records) {
 
 
 //blob = array('column' => 'data')
-function update_blob($table, $conditions, $blob) {
-  if (!is_array($conditions)) { dbg("must supply update conditions"); return FALSE; }
-  if (!is_array($blob)) { return FALSE; }
-  $parts = str_split(reset($blob), 8192);
-  $column = key($blob);
-  $query = "UPDATE ".$table." SET ".$column."= ?".array_to_where($conditions);
-  $db = getdb();
-  $stmt = mysqli_prepare($db, $query);
-  $empty = NULL;
-  mysqli_stmt_bind_param($stmt, "b", $empty);
-  foreach ($parts as $part) {
-    mysqli_stmt_send_long_data($stmt, 0, $part);
-  }
-  mysqli_stmt_execute($stmt);
-  sql_dbg($query);
-  $affected = mysqli_stmt_affected_rows($stmt);
-  mysqli_stmt_close($stmt);
-  sql_commit();
-  return $affected;  
+function update_blob($table, $column, $conditions, $blob) {
+  $result = sql_update_blob($table, $column, $conditions, $blob);
+  return sql_affected_rows($result);
 }
 
 
 function update_records($table, $conditions, $newdata) {
-  if (!is_array($conditions)) { dbg("must supply update conditions"); return FALSE; }
   $newdata = array_escape($newdata);
-  array_walk($newdata, 'key_equals_value');
+  $column_quote_func = db_params('column_quote_func');
+  array_walk($newdata, $column_quote_func);
   if (count($newdata) > 0) { 
-    $query = "UPDATE ".$table." SET ".implode(", ", $newdata).array_to_where($conditions);
-    sql_query_dbg($query);
-    sql_commit();
-    return sql_affected_rows();
+    $query = "UPDATE ".$table." SET ".implode(", ", $newdata).sql_where($conditions);
+    $result = sql_query_dbg($query);
+    return sql_affected_rows($result);
   }
   return FALSE;
 }
 
 
 function insert_records($table, $conditions, $records) {
-  if (!is_array($conditions)) { $conditions = array(); }
   if (is_array($records)) {
     if ($lines = generate_insert_sql($table, $conditions, $records)) {
       $insert_id = sql_transaction($lines);
       return $insert_id;
     }
   }
-  dbg_r(compact('table', 'conditions', 'records'),"INSERT RECORDS NOT A NESTED ARRAY");
+  dbg_r(compact('table', 'conditions', 'records'), "INSERT RECORDS NOT A NESTED ARRAY");
   return FALSE;
 }
 
 
 function adv_replace_records($table, $delete_conditions, $insert_conditions, $records) {
-  if (!is_array($delete_conditions)) { dbg("must supply delete conditions"); return FALSE; }
-  if (!is_array($insert_conditions)) { $insert_conditions = array(); }
   $queries[] = generate_delete_sql($table, $delete_conditions);
   $queries[] =  generate_insert_sql($table, $insert_conditions, $records);
   return sql_transaction($queries);
 }
 
 
+//fixme - detect nesting
 function delete_records($table, $conditions) {
-  if (!is_array($conditions)) { dbg("must supply delete conditions"); return FALSE; }
-  if (is_array(reset($conditions))) { dbg("conditions cannot be a nested array"); return FALSE; }
   $queries[] = generate_delete_sql($table, $conditions);
   return sql_transaction($queries);
 }
 
 
 function replace_records($table, $conditions, $records) {
-  if (!is_array($conditions)) { dbg("must supply delete conditions"); return FALSE; }
-  if (is_array(reset($conditions))) { dbg("conditions cannot be a nested array"); return FALSE; }
   $queries[] = generate_delete_sql($table, $conditions);
   $queries[] =  generate_insert_sql($table, $conditions, $records);
   return sql_transaction($queries);

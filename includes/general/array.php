@@ -44,19 +44,15 @@ function get_fields($array, $fields) {
 }
 
 
-function key_by_name($array) {
-  $ret = array();
-  foreach ($array as $val) {
-    $ret[$val] = $val;
-  }
-  return $ret;
+function key_by_name($arr) {
+  return array_combine($arr, $arr);
 }
 
 
 function get_fields_ordered_numeric($array, $fields) {
   $ret = array();
   foreach ($fields as $field) {
-    $ret[] = $array[$field];
+    $ret[] = (array_key_exists($field, $array)) ? $array[$field] : '';
   }
   return $ret;
 }
@@ -88,25 +84,24 @@ function array_numeric_nokeys($arr) {
 }
 
 
-function over_zero($array) {
-  $ret = array();
-  foreach ($array as $key => $value) {
-    if ($value > 0) {
-      $ret[$key] = $value;
-    }
+function over_zero($x) {
+  if (is_array($x)) {
+    return array_filter($x, 'over_zero');
   }
-  return $ret;
+  return ($x > 0) ? $x : 0;
 }
 
 
-function not_empty($array) {
-  $ret = array();
-  foreach ($array as $key => $value) {
-    if ($value != '' || $value > 0) {
-      $ret[$key] = $value;
-    }
+function not_empty($x) {
+  if (is_array($x)) {
+    return array_filter($x, 'not_empty');
   }
-  return $ret;
+  return $x;
+}
+
+
+function backtick_key_equals_value(&$item, $key, $table = '') {
+  $item = ($table != '') ? "`".$table."`.`".$key."`='".$item."'" : "`".$key."`='".$item."'";
 }
 
 

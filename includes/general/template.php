@@ -22,30 +22,39 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
-require_once('includes/smarty/Smarty.class.php');
 
-
-function new_smarty($base_dir = "", $template = 'templates', $compile = 'templates_c', $cache = 'cache', $config = 'configs') {
-  if (function_exists('template_config')) {
-    extract(template_config());
+function template_callbacks($callback = '', $var_name = '') {
+  static $callbacks = array();
+  if ($callback != '') {
+    if ($var_name == '') {
+      $var_name = $callback;
+    }
+    $callbacks[$var_name] = $callback;
   }
-  $smarty = new Smarty();
-  $smarty->template_dir = $base_dir . $template;
-  $smarty->compile_dir = $base_dir . $compile;
-  $smarty->cache_dir = $base_dir . $cache;
-  $smarty->config_dir = $base_dir . $config;
-  //$smarty->default_modifiers = array('escape:"htmlall"');
-  return $smarty;
+  return $callbacks;
 }
 
 
 function template_fill($file_name, $vars = array()) {
-  $smarty = new_smarty();
-  $smarty->assign('debug_messages', debug_messages());
+  require_once('includes/smarty/Smarty.class.php');
+  if (substr($file_name, -4, 1) != '.') { $file_name .= '.tpl'; }
+  $smarty = new Smarty();
+  $base_dir = ''; $template = 'templates'; $compile = 'templates_c'; $cache = 'cache'; $config = 'configs';
+  if (function_exists('template_config')) {
+    extract(template_config());
+  }
+  $smarty->template_dir = $base_dir . $template;
+  $smarty->compile_dir = $base_dir . $compile;
+  $smarty->cache_dir = $base_dir . $cache;
+  $smarty->config_dir = $base_dir . $config;
+  foreach (template_callbacks() as $key => $callback) {
+    $smarty->assign($key, call_user_func($callback));
+  } 
   foreach ($vars as $key => $val) {
     $smarty->assign($key, $val);
   }
   return $smarty->fetch($file_name);
 }
+
 
 ?>

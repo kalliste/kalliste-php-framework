@@ -1,7 +1,7 @@
 <?php
 
 /*
-Copyright (c) 2009 Kalliste Consulting, LLC
+Copyright (c) 2010 Kalliste Consulting, LLC
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -22,70 +22,27 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
 
+require_once("includes/general/request.php");
+require_once("includes/oo/retro.php");
 
-function dbg_enabled() {
-  return config('show_debug');
-}
+abstract class kController {
 
-
-function dbg($info, $label = "") {
-  if ($label != "") {
-    _dbginfo($label.":\n".$info);
-  }
-  else {
-    _dbginfo($info);
-  }
-}
-
-
-function dbg_export($var, $label = "") {
-  $var = var_export($var, TRUE);
-  dbg($var, $label);
-}
-
-
-function dbg_r($info, $label = "") {
-  _dbginfo_r($info, $label);
-}
-
-
-function _dbginfo($info) {
-  if (dbg_enabled()) {
-    if (php_sapi_name() == 'cli') {
-      print $info."\n";
-    }
-    else {
-      print "<pre>".$info."</pre><br />\n";
-    }
-  }
-}
-
-
-function _dbginfo_r($info, $label) {
-  if (dbg_enabled()) {
-    if (php_sapi_name() == 'cli') {
-      print "\n";
-    }
-    else {
-      print "<pre>\n";
-    }
-    if ($label != "") {
-      if (php_sapi_name() == 'cli') {
-        print $label."\n";
+  function __construct() {
+    $class = get_called_class();
+    $methods = get_class_methods($class);
+    foreach ($methods as $method) {
+      if ($method{0} != '_') {
+        $rmethod = new ReflectionMethod($class, $method);
+        $rparams = $rmethod->getParameters();
+        $params = array();
+        foreach ($rparams as $param) {
+          $params[] = $param->getName();
+        }
+        register_action($method, array($this, $method), $params);
       }
-      else {
-        print $label.":<br />\n";
-      }
-    }
-    print_r($info);
-    if (php_sapi_name() == 'cli') {
-      print "\n";
-    }
-    else {
-      print "</pre><br />\n";
-    }
+    }    
   }
+ 
 }
-
 
 ?>

@@ -1,7 +1,7 @@
 <?php
 
 /*
-Copyright (c) 2009 Kalliste Consulting, LLC
+Copyright (c) 2010, 2013 Kalliste Consulting, LLC
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -27,120 +27,153 @@ require_once("includes/general/messages.php");
 
 /***
  db/base.php
- Wrap the vendor-specific database functions
+ Wrap the PDO database functions
 ***/
-
-function getdb($server = '', $user = '', $password = '', $database = '') {
+function getdb($dsn= '', $user = '', $password = '') {
+  static $config;
+  if ($dsn == '') {
+    extract($config);
+  }
+  else {
+    $config = compact('dsn', 'user', 'password');
+  }
   static $db;
   if (!$db) {
-    $db =& sql_connect($server, $user, $password, $database);
-     sql_rollback($db);
-     sql_autocommit(FALSE, $db);
-  }
-  if (!$db) {
-    die ("Couldn't connect to MySQL server");
+    try {
+      $db = new PDO($dsn, $user, $password);
+      preg_match('/(.*):/', $dsn, $matches); // set database parameters based on dsn
+      db_params('', $matches[1]);
+    } catch (PDOException $e) {
+      echo 'Connection failed: ' . $e->getMessage();
+      exit();
+    }
   }
   return $db;
 }
 
 
-function sql_connect($server = '', $user = '', $password = '', $database = '') {
-  return mysqli_connect($server, $user, $password, $database);
+function db_params($param, $set_config = '') {
+  static $params;
+  if ($set_config) {
+    switch ($set_config) {
+      case 'pgsql':
+        $params = array('column_quote_char' => '"', 'column_quote_func' => 'key_equals_value', 'random' => 'RANDOM()');
+				break;
+			case 'sqlsrv':
+        $params = array('column_quote_char' => ' ', 'column_quote_func' => 'key_equals_value', 'random' => 'RAND()');
+				break;
+			case 'mysql':
+      default:
+        $params = array('column_quote_char' => '`', 'column_quote_func' => 'backtick_key_equals_value', 'random' => 'RAND()');
+        break;
+    } 
+  }
+  return (array_key_exists($param, $params)) ? $params[$param] : '';
 }
 
 
-function sql_commit() {
-  $db = getdb();
-  mysqli_commit($db);
+function sql_begin($db = NULL) {
+  $db = ($db == NULL) ? getdb() : $db;
+  return $db->beginTransaction();
+}
+
+
+function sql_commit($db = NULL) {
+  $db = ($db == NULL) ? getdb() : $db;
+  return $db->commit();
 }
 
 
 function sql_rollback($db = NULL) {
-  if ($db == NULL) {
-    $db = getdb();
-  }
-  mysqli_rollback($db);
-}
-
-
-function sql_autocommit($bool, $db = NULL) {
-  if ($db == NULL) {
-    $db = getdb();
-  }
-  mysqli_autocommit($db, $bool);
+  $db = ($db == NULL) ? getdb() : $db;
+  return $db->rollBack();
 }
 
 
 function sql_query($query) {
   $db = getdb();
-  return mysqli_query($db, $query);
+  return $db->query($query);
 }
 
 
 function sql_query_dbg($query, $hide_errors = false) {
-  $return =& sql_query($query);
-  sql_dbg($query, $hide_errors);
-  return $return;
-}
-
-
-//run directly after performing the query
-function sql_dbg($query = "", $hide_errors = false) {
   $db = getdb();
-  $str = mysqli_error($db);
-  if ($str != "" && !$hide_errors) {
-    add_message($query."\n".$str, "sql_errors");
+  $return = $db->query($query);
+  if (is_object($return)) {
+    if ($return->errorCode() != '00000' && !$hide_errors) {
+      list($sqlstate, $drivercode, $drivermessage) = $return->errorInfo();
+      add_message("$query\n $sqlstate $drivercode $drivermessage", "sql_errors");
+    }
+  }
+  else {
+    if ($db->errorCode() != '00000' && !$hide_errors) {
+      list($sqlstate, $drivercode, $drivermessage) = $db->errorInfo();
+      add_message("$query\n $sqlstate $drivercode $drivermessage", "sql_errors");
+    }
   }
   if (config('show_queries')) {
     add_message($query, "sql_queries");
   }
+  return $return;
 }
 
 
-function sql_fetch_array(&$result) {
-  return mysqli_fetch_array($result);
+function sql_fetch_assoc($result) {
+  if (is_object($result)) {
+    return $result->fetch(PDO::FETCH_ASSOC);
+  }
+  return false;
 }
 
 
-function sql_fetch_assoc(&$result) {
-  return mysqli_fetch_assoc($result);
+function sql_fetch_row($result) {
+  if (is_object($result)) {
+    return $result->fetch(PDO::FETCH_NUM);
+  }
+  return false;
 }
 
 
-function sql_fetch_row(&$result) {
-  return mysqli_fetch_row($result);
+function sql_update_blob($table, $column, $conditions, $blob) {
+  $db = getdb();
+  $stmt = $db->prepare("UPDATE ".$table." SET `".$column."`= ?".sql_where($conditions));
+  $stmt->bindParam(1, $blob, PDO::PARAM_LOB);
+  $db->beginTransaction();
+  $stmt->execute();
+  $db->commit();
+  return $stmt;
+}
+
+
+function sql_close($stmt) {
+  if (is_object($stmt)) {
+    $stmt->closeCursor();
+  }
 }
 
 
 function sql_insert_id() {
   $db = getdb();
-  return mysqli_insert_id($db);
+  return $db->lastInsertId();
 }
 
 
-function sql_num_rows(&$result) {
- return mysqli_num_rows($result);
-}
-
-
-function sql_affected_rows() {
-  $db = getdb();
-  return mysqli_affected_rows($db);
+function sql_affected_rows($result) {
+  return (is_object($result)) ? $result->rowCount() : false;
 }
 
 
 function escape_str($str) {
   $db = getdb();
-  $ret = mysqli_real_escape_string($db, $str);
-  return $ret;
+  return substr($db->quote($str), 1, -1);
 }
 
 
 function array_escape($arr) {
   if (!is_array($arr)) {
-    $arr = array($arr);
+    return escape_str($arr);
   }
-  return array_map('escape_str', $arr);
+  return array_map('array_escape', $arr);
 }
 
 ?>

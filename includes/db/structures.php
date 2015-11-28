@@ -1,7 +1,7 @@
 <?php
 
 /*
-Copyright (c) 2009 Kalliste Consulting, LLC
+Copyright (c) 2009, 2013 Kalliste Consulting, LLC
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -43,6 +43,7 @@ function query_to_list($query) {
 function query_to_assoc($query) {
   $result = sql_query_dbg($query);
   if ($row = sql_fetch_assoc($result)) {
+    sql_close($result);
     return $row;
   }
   return FALSE;
@@ -52,6 +53,7 @@ function query_to_assoc($query) {
 function query_to_value($query) {
   $result = sql_query_dbg($query);
   if ($row = sql_fetch_row($result)) {
+    sql_close($result);
     return $row[0];
   }
   return FALSE;
@@ -68,16 +70,6 @@ function query_to_assoc_list($query) {
   return $ret;
 }
 
-//returns a two dimensional array indexed by the first column
-function query_to_keyed_arrays($query) {
-  $ret = array();
-  $result = sql_query_dbg($query);
-  while ($row = sql_fetch_array($result)) {
-    $ret[$row[0]] = $row;
-  }
-  return $ret;
-}
-
 
 function query_to_hash($query) {
   $ret = array();
@@ -87,16 +79,5 @@ function query_to_hash($query) {
   }
   return $ret;
 }
-
-
-function query_to_hash_hash($query) {
-  $ret = array();
-  $result = sql_query_dbg($query);
-  while ($row = sql_fetch_row($result)) {
-    $ret[$row[0]][$row[1]] = $row[2];
-  }
-  return $ret;
-}
-
 
 ?>

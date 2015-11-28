@@ -7,7 +7,10 @@ function add_message($message, $bin = 'default') {
 
 function dump_messages($bin = 'default') {
   $messages = _messages();
-  return $messages[$bin];
+  if (array_key_exists($bin, $messages)) {
+    return $messages[$bin];
+  }
+  return false;
 }
 
 
@@ -22,7 +25,7 @@ function all_messages() {
 
 
 function _messages($adding = false, $add = '', $bin = 'default') {
-  static $messages = array();
+  static $messages = array('default' => array());
   if ($adding) {
     $messages[$bin][] = $add;
   }

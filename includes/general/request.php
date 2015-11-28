@@ -78,34 +78,15 @@ function actions($action, $append = '', $all = FALSE) {
 }
 
 
-function default_flow_control() {
-  $action = array_key_exists('action', $_REQUEST) ? $_REQUEST['action'] : "";
-  if ($action == "") {
-    $action = "default";
-  }
-  elseif (!in_array($action, available_actions())) {
-    dbg($action, "action does not exist");
-    $action = "default";
-  }
-  print_page(execute_action($action));
-}
-
-
-function javascript_redirect_page($url) {
-  return template_fill('javascript_redirect.tpl', compact('url'));
-}
-
-
 function manual_redirect_page($url) {
-  $capture_redirects = (config('capture_redirects')) ? true : false;
+  $capture_redirects = config('capture_redirects');
   return template_fill('manual_redirect.tpl', compact('url', 'capture_redirects'));
 }
 
 
-function app_redirect($action = "default", $vars = array()) {
-  $capture_redirects = (config('capture_redirects')) ? true : false;
+function app_redirect($action = "index", $vars = array()) {
   $vars['action'] = $action;
-  if ($capture_redirects && count(all_messages())) {
+  if (config('capture_redirects')) {
     return manual_redirect_page('?'.http_build_query($vars));
   }
   else {
