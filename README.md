@@ -154,17 +154,23 @@ A template_config function appears - this is unfortunate and should be removed i
 
 We make sure that we see errors in the development version and maybe we turn that off in production. In either case we override the server config.
 
+```
     ini_set("display_errors", 1);
     error_reporting(E_ALL);
+```
 
 Recent versions of PHP hate you if you don't specify a timezone setting but many servers do not. Really they should just respect /etc/localtime but that is not our battle today.
 
+```
     date_default_timezone_set("America/Chicago");
+```
 
 Finally, regardless of the entry point we are going to assume that we should connect to the database.
 
+```
     require_once("includes/db/base.php");
     $db = getdb(config('db_host'), config('db_user'), config('db_pass'), config('db_name'));
+```
 
 Writing Views
 -------------
@@ -280,7 +286,9 @@ Elsewhere I have written a function that accepts the same parameters as sql_orde
 Also in this file is some code to help build links we can use to change the sorting parameters when we are browsing data.
 
 The functions in includes/db/fetch.php combine the operations in includes/db/structures.php and includes/db/generated.php to return structured results from structured descriptions. For example, to get all the supervisors in the sales department you might do something like this:
+```
     get_records('users', array('department' => 'sales', 'type' => 'supervisor'))
+```
 
 Database model classes
 ----------------------
@@ -290,9 +298,13 @@ In includes/oo/orm.php you will find code that builds on includes/db/fetch.php a
 Now for each table in the database we'll have a class that extends kORM. All you have to do is subclass kORM, and the methods in orm.php will use PHP's get_called_class() function to determine the table name.
 
 So, this:
+```
     get_records('users')
+```
 becomes this:
+```
     users::records()
+```
 
 For most tables we'll override the records() function to provide some additional functionality such as special handling of certain columns, or JOINing to another table. Many times we'll override some of the other methods as well. kORM provides a structure that gets us up and running doing work in the controller code fast while also allowing for complex models to be developed when we need them.
 
