@@ -4,7 +4,11 @@ Web application development with the kalliste PHP framework
 Introduction
 ------------
 
-This document will make the most sense if you have access to a working application written with the kalliste PHP framework while reading through it. Additional outside reading will be required - this is merely a guidebook. You should already know at least one programming language - if not go work through "Learn Python the Hard Way" or "The Little Schemer". You should already know the basics of PHP - if not read through the first half of the Language Reference section of the PHP Manual on 
+This document will make the most sense if you have access to a working application written with the kalliste PHP framework while reading through it. Additional outside reading will be required - this is merely a guidebook.
+
+You should already know at least one programming language - if not go work through "Learn Python the Hard Way" or "The Little Schemer".
+
+You should already know the basics of PHP - if not read through the first half of the Language Reference section of the PHP Manual on 
 Basic syntax, 
 Types,
 Variables,
@@ -13,11 +17,17 @@ Expressions,
 Operators,
 Control Structures,
 Functions,
-Classes and Objects. No need to worry about Namespaces, Exceptions, Generators, References, and so on for now.
+Classes and Objects.
+
+No need to worry about Namespaces, Exceptions, Generators, References, and so on for now.
+
 You should already know what MVC is - if not go read the Wikipedia article.
+
 You should already know a little MySQL - if not go read about INSERT, SELECT, UPDATE, DELETE, LIMIT, and ORDER BY. 
 You may also look at LEFT JOIN, DISTINCT, IN, GROUP BY, and MAX.
+
 You should already know some basic HTML and CSS.
+
 You should already be running some sort of Unix operating system such as Mac OS or Ubuntu. If not, go install Ubuntu now.
 
 
@@ -42,8 +52,14 @@ If this section is not completely clear to you on the first reading, you might j
 We shall work on various projects on various servers. Mostly one project at a time, though we will switch often. Let's have a convenient way to set a project as being current, and to sync the current project to a developement/testing machine and to a production machine.
 
 I cd to a project folder and run:
+
+```
     setproj .
+```
+
 Then regardless of my current directory I can run proj to sync to the development server and prod to sync to the production server. One might even set a hotkey for this.
+
+```
     user@laptop:~/bin$ cat proj
     #!/bin/sh
     PROJECT=/home/user/Projects/client/myapp
@@ -59,21 +75,26 @@ Then regardless of my current directory I can run proj to sync to the developmen
     NEWPATH=$(cd "$@"; pwd)
     perl -pi -e s?^PROJECT.*?PROJECT=${NEWPATH}? ~/bin/proj
     perl -pi -e s?^PROJECT.*?PROJECT=${NEWPATH}? ~/bin/prod
+```
 
 We run a Makefile inside the project folder which knows how to sync that project. Different tools particular to the project may be used to sync.
 
 I organize my projects like so:
+```
     ~/Projects/ORGANIZATION/PROJECT/Makefile has the sync commands
     ~/Projects/ORGANIZATION/PROJECT/design has the files to be synced
+```
 
 So a Makefile might look like this
 
+```
     all: up
     up:
         unison ~/Projects/client/myapp/design ssh://development.example.com//home/domains/development.example.com/pages/client/myapp -ignore 'Name .*.swp' -ignore 'Path templates_c' -ignore 'Name .htaccess
     
     production:
         unison ~/Projects/client/myapp/design ssh://production.example.com//home/webuser/public_html  -ignore 'Name .*.swp' -servercmd bin/unison -ignore 'Path templates_c'
+```
     
 Beware the unfortunate mandatory tabs in the Makefile syntax and note the unusual syntax used by unison for specifying paths and files to be excluded from the sync.
 
@@ -148,7 +169,7 @@ Finally, regardless of the entry point we are going to assume that we should con
 Writing Views
 -------------
 
-We'll be using an MVC framework. Possibly there are better ways to structure a web application, but this is certainly a good one, and basically most every PHP app that I've seen not doing this is much more of a pain to maintain than the ones that do.
+We'll be using a MVC framework. Possibly there are better ways to structure a web application, but this is certainly a good one, and basically most every PHP app that I've seen not doing this is much more of a pain to maintain than the ones that do.
 
 Smarty is a mature and battle tested template system. Originally PHP was itself intended to just be a template system, but Smarty does the job well and using it will help us keep things out of the views that really don't belong there.
 
@@ -196,9 +217,13 @@ When a controller method has done its job, it typically returns an array of info
 A more sophisticated system would keep different controller classes separate, would allow for different routes to be configured to map URLs to methods, and would have the templates organized into sub-directories according to their controller. This system today shoves all the methods in all the controllers into the same list and renders them by default using the smarty template from the templates directory of the same name as the method. This works fine for apps where the users don't care about pretty URLs, and where the software is not so big that you have different coders working on different controllers.
 
 In methods where we are handling a request to make a change to the data, we will take in a POST request, and return a redirect. This prevents badness like the user bollocksing up the database by back-buttoning to non-idempotent operations. For those methods we will do something like this at the end:
+```
     return app_redirect('new_method_after_redirect', compact('vars', 'topass', 'along'));
+```
 This will result in an HTTP header that looks something like this:
+```
     Location: ?action=new_method_after_redirect?vars=foo&topass=bar&along=baz
+```
 
 This is all made to work in includes/oo/app.php using primitives in includes/general/request.php and includes/general/template.php
 
