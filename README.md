@@ -54,46 +54,46 @@ We shall work on various projects on various servers. Mostly one project at a ti
 I cd to a project folder and run:
 
 ```
-    setproj .
+setproj .
 ```
 
 Then regardless of my current directory I can run proj to sync to the development server and prod to sync to the production server. One might even set a hotkey for this.
 
 ```
-    user@laptop:~/bin$ cat proj
-    #!/bin/sh
-    PROJECT=/home/user/Projects/client/myapp
-    cd ${PROJECT}
-    make
-    user@laptop:~/bin$ cat prod
-    #!/bin/sh
-    PROJECT=/home/user/Projects/client/myapp
-    cd ${PROJECT}
-    make production
-    user@laptop:~/bin$ cat setproj
-    #!/bin/sh
-    NEWPATH=$(cd "$@"; pwd)
-    perl -pi -e s?^PROJECT.*?PROJECT=${NEWPATH}? ~/bin/proj
-    perl -pi -e s?^PROJECT.*?PROJECT=${NEWPATH}? ~/bin/prod
+user@laptop:~/bin$ cat proj
+#!/bin/sh
+PROJECT=/home/user/Projects/client/myapp
+cd ${PROJECT}
+make
+user@laptop:~/bin$ cat prod
+#!/bin/sh
+PROJECT=/home/user/Projects/client/myapp
+cd ${PROJECT}
+make production
+user@laptop:~/bin$ cat setproj
+#!/bin/sh
+NEWPATH=$(cd "$@"; pwd)
+perl -pi -e s?^PROJECT.*?PROJECT=${NEWPATH}? ~/bin/proj
+perl -pi -e s?^PROJECT.*?PROJECT=${NEWPATH}? ~/bin/prod
 ```
 
 We run a Makefile inside the project folder which knows how to sync that project. Different tools particular to the project may be used to sync.
 
 I organize my projects like so:
 ```
-    ~/Projects/ORGANIZATION/PROJECT/Makefile has the sync commands
-    ~/Projects/ORGANIZATION/PROJECT/design has the files to be synced
+~/Projects/ORGANIZATION/PROJECT/Makefile has the sync commands
+~/Projects/ORGANIZATION/PROJECT/design has the files to be synced
 ```
 
 So a Makefile might look like this
 
 ```
-    all: up
-    up:
-        unison ~/Projects/client/myapp/design ssh://development.example.com//home/domains/development.example.com/pages/client/myapp -ignore 'Name .*.swp' -ignore 'Path templates_c' -ignore 'Name .htaccess
-    
-    production:
-        unison ~/Projects/client/myapp/design ssh://production.example.com//home/webuser/public_html  -ignore 'Name .*.swp' -servercmd bin/unison -ignore 'Path templates_c'
+all: up
+up:
+    unison ~/Projects/client/myapp/design ssh://development.example.com//home/domains/development.example.com/pages/client/myapp -ignore 'Name .*.swp' -ignore 'Path templates_c' -ignore 'Name .htaccess
+
+production:
+    unison ~/Projects/client/myapp/design ssh://production.example.com//home/webuser/public_html  -ignore 'Name .*.swp' -servercmd bin/unison -ignore 'Path templates_c'
 ```
     
 Beware the unfortunate mandatory tabs in the Makefile syntax and note the unusual syntax used by unison for specifying paths and files to be excluded from the sync.
@@ -155,21 +155,21 @@ A template_config function appears - this is unfortunate and should be removed i
 We make sure that we see errors in the development version and maybe we turn that off in production. In either case we override the server config.
 
 ```
-    ini_set("display_errors", 1);
-    error_reporting(E_ALL);
+ini_set("display_errors", 1);
+error_reporting(E_ALL);
 ```
 
 Recent versions of PHP hate you if you don't specify a timezone setting but many servers do not. Really they should just respect /etc/localtime but that is not our battle today.
 
 ```
-    date_default_timezone_set("America/Chicago");
+date_default_timezone_set("America/Chicago");
 ```
 
 Finally, regardless of the entry point we are going to assume that we should connect to the database.
 
 ```
-    require_once("includes/db/base.php");
-    $db = getdb(config('db_host'), config('db_user'), config('db_pass'), config('db_name'));
+require_once("includes/db/base.php");
+$db = getdb(config('db_host'), config('db_user'), config('db_pass'), config('db_name'));
 ```
 
 Writing Views
@@ -224,11 +224,11 @@ A more sophisticated system would keep different controller classes separate, wo
 
 In methods where we are handling a request to make a change to the data, we will take in a POST request, and return a redirect. This prevents badness like the user bollocksing up the database by back-buttoning to non-idempotent operations. For those methods we will do something like this at the end:
 ```
-    return app_redirect('new_method_after_redirect', compact('vars', 'topass', 'along'));
+return app_redirect('new_method_after_redirect', compact('vars', 'topass', 'along'));
 ```
 This will result in an HTTP header that looks something like this:
 ```
-    Location: ?action=new_method_after_redirect?vars=foo&topass=bar&along=baz
+Location: ?action=new_method_after_redirect?vars=foo&topass=bar&along=baz
 ```
 
 This is all made to work in includes/oo/app.php using primitives in includes/general/request.php and includes/general/template.php
@@ -287,7 +287,7 @@ Also in this file is some code to help build links we can use to change the sort
 
 The functions in includes/db/fetch.php combine the operations in includes/db/structures.php and includes/db/generated.php to return structured results from structured descriptions. For example, to get all the supervisors in the sales department you might do something like this:
 ```
-    get_records('users', array('department' => 'sales', 'type' => 'supervisor'))
+get_records('users', array('department' => 'sales', 'type' => 'supervisor'))
 ```
 
 Database model classes
@@ -299,11 +299,11 @@ Now for each table in the database we'll have a class that extends kORM. All you
 
 So, this:
 ```
-    get_records('users')
+get_records('users')
 ```
 becomes this:
 ```
-    users::records()
+users::records()
 ```
 
 For most tables we'll override the records() function to provide some additional functionality such as special handling of certain columns, or JOINing to another table. Many times we'll override some of the other methods as well. kORM provides a structure that gets us up and running doing work in the controller code fast while also allowing for complex models to be developed when we need them.
