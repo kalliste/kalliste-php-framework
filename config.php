@@ -28,8 +28,7 @@ function template_config() {
 
 require_once('includes/smarty/Smarty.class.php');
 ini_set("display_errors", 1); 
-//error_reporting(E_ALL & !E_DEPRECATED);
-error_reporting(E_ERROR | E_WARNING | E_PARSE);
+error_reporting(E_ALL & ~E_DEPRECATED);
 date_default_timezone_set("America/Chicago");
 require_once("includes/db/base.php");
 
