@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}Kalliste Sample Code{% endblock %}
+
+{% block breadcrumbs %}
+{% endblock %}
+
+
+
+{% block content %}
+
+<br />
+
+<div class="panel panel-default">
+    <div class="panel-heading">Login</div>
+
+    <div class="panel-body">
+
+        <form method="post" action="?">
+            <input type="hidden" name="action" value="submit_login" />
+            <table>
+                <tr>
+                    <td><label>Username:</label></td>
+                    <td><input type="text" name="email" value="" /></td>
+                </tr>
+                <tr>
+                    <td><label>Password:</label></td>
+                    <td><input type="password" name="password" value="" /></td>
+                </tr>
+            </table>
+            <br style="clear:both;" />
+            <input type="submit" class="btn btn-primary" value="Login" />
+        </form>
+
+    </div>
+</div>
+
+
+{% endblock %}

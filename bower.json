@@ -1,0 +1,23 @@
+{
+  "name": "kalliste-php-framework",
+  "authors": [
+    "Joshua Jackson <jjackson@kallisteconsulting.com>"
+  ],
+  "description": "Kalliste PHP Framework",
+  "main": "index.php",
+  "license": "Various",
+  "homepage": "https://github.com/kalliste/kalliste-php-framework",
+  "private": true,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "bootstrap": "^3.3.6",
+    "jqueryui-bootstrap": "^1.0.0",
+    "jquery-ui": "^1.11.4"
+  }
+}

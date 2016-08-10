@@ -2,14 +2,20 @@
 
 require_once("config.php");
 require_once("includes/oo/app.php");
-require_once("includes/helpers/session.php");
+require_once("includes/models/session.php");
 
 class sampleappApp extends kApp {
-}
 
-session_name('sampleapp');
-session_start();
-refresh_session();
+    public function preinit() {
+        parent::preinit();
+        session_name('sampleApp');
+        session_start();
+        if (session::logged_in()) {
+            session::refresh();
+        }
+    }
+
+}
 
 $app = new sampleappApp;
 $app->run();

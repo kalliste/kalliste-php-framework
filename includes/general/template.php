@@ -1,7 +1,7 @@
 <?php
 
 /*
-Copyright (c) 2009 Kalliste Consulting, LLC
+Copyright (c) 2009, 2016 Kalliste Consulting, LLC
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -35,25 +35,32 @@ function template_callbacks($callback = '', $var_name = '') {
 }
 
 
-function template_fill($file_name, $vars = array()) {
-  require_once('includes/smarty/Smarty.class.php');
-  if (substr($file_name, -4, 1) != '.') { $file_name .= '.tpl'; }
-  $smarty = new Smarty();
-  $base_dir = ''; $template = 'templates'; $compile = 'templates_c'; $cache = 'cache'; $config = 'configs';
-  if (function_exists('template_config')) {
-    extract(template_config());
-  }
-  $smarty->template_dir = $base_dir . $template;
-  $smarty->compile_dir = $base_dir . $compile;
-  $smarty->cache_dir = $base_dir . $cache;
-  $smarty->config_dir = $base_dir . $config;
-  foreach (template_callbacks() as $key => $callback) {
-    $smarty->assign($key, call_user_func($callback));
-  } 
-  foreach ($vars as $key => $val) {
-    $smarty->assign($key, $val);
-  }
-  return $smarty->fetch($file_name);
+function process_callbacks($callbacks) {
+    $ret = array();
+    foreach ($callbacks as $key => $callback) {
+        $ret[$key] = call_user_func($callback);
+    }
+    return $ret;
+}
+
+
+function template_fill($template_name, $vars = array()) {
+    $loader = new Twig_Loader_Filesystem('templates');
+    $twig = new Twig_Environment($loader, array(
+        'cache' => false,
+        'autoescape' => true,
+        'autoreload' => true,
+    ));
+    $class = new ReflectionClass($twig);
+    $methods = $class->getMethods();
+    $twig->addGlobal('get', $_GET);
+    $twig->addGlobal('post', $_POST);
+    $twig->addGlobal('request', $_REQUEST);
+    $twig->addGlobal('session', $_SESSION);
+    $callback_values = process_callbacks(template_callbacks());
+    $vars = array_merge($callback_values, $vars);
+    $template = $twig->loadTemplate($template_name.".html");
+    return $template->render($vars);
 }
 
 
