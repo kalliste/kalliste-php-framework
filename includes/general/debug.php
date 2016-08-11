@@ -20,71 +20,71 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-*/
+ */
 
 
 function dbg_enabled() {
-  return config('show_debug');
+    return config('show_debug');
 }
 
 
 function dbg($info, $label = "") {
-  if ($label != "") {
-    _dbginfo($label.":\n".$info);
-  }
-  else {
-    _dbginfo($info);
-  }
+    if ($label != "") {
+        _dbginfo($label.":\n".$info);
+    }
+    else {
+        _dbginfo($info);
+    }
 }
 
 
 function dbg_export($var, $label = "") {
-  $var = var_export($var, TRUE);
-  dbg($var, $label);
+    $var = var_export($var, TRUE);
+    dbg($var, $label);
 }
 
 
 function dbg_r($info, $label = "") {
-  _dbginfo_r($info, $label);
+    _dbginfo_r($info, $label);
 }
 
 
 function _dbginfo($info) {
-  if (dbg_enabled()) {
-    if (php_sapi_name() == 'cli') {
-      print $info."\n";
+    if (dbg_enabled()) {
+        if (php_sapi_name() == 'cli') {
+            print $info."\n";
+        }
+        else {
+            print "<pre>".$info."</pre><br />\n";
+        }
     }
-    else {
-      print "<pre>".$info."</pre><br />\n";
-    }
-  }
 }
 
 
 function _dbginfo_r($info, $label) {
-  if (dbg_enabled()) {
-    if (php_sapi_name() == 'cli') {
-      print "\n";
+    if (dbg_enabled()) {
+        if (php_sapi_name() == 'cli') {
+            print "\n";
+        }
+        else {
+            print "<pre>\n";
+        }
+        if ($label != "") {
+            if (php_sapi_name() == 'cli') {
+                print $label."\n";
+            }
+            else {
+                print $label.":<br />\n";
+            }
+        }
+        print_r($info);
+        if (php_sapi_name() == 'cli') {
+            print "\n";
+        }
+        else {
+            print "</pre><br />\n";
+        }
     }
-    else {
-      print "<pre>\n";
-    }
-    if ($label != "") {
-      if (php_sapi_name() == 'cli') {
-        print $label."\n";
-      }
-      else {
-        print $label.":<br />\n";
-      }
-    }
-    print_r($info);
-    if (php_sapi_name() == 'cli') {
-      print "\n";
-    }
-    else {
-      print "</pre><br />\n";
-    }
-  }
 }
 
 

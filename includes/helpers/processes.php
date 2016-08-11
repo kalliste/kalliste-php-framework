@@ -20,37 +20,37 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-*/
+ */
 
 
 function run_in_background($command) {
-  return (int) shell_exec("nohup ".$command." >/dev/null 2>&1 & echo $!");
+    return (int) shell_exec("nohup ".$command." >/dev/null 2>&1 & echo $!");
 }
 
 
 function is_process_running($pid) {
-  settype($pid, 'integer');
-  exec("ps ".$pid, $state);
-  return(count($state) >= 2);
+    settype($pid, 'integer');
+    exec("ps ".$pid, $state);
+    return(count($state) >= 2);
 }
 
 
 function process_name($pid) {
-  settype($pid, 'integer');
-  exec("ps ".$pid." | tail -n 1 | cut -c 28-", $state);
-  return reset($state);
+    settype($pid, 'integer');
+    exec("ps ".$pid." | tail -n 1 | cut -c 28-", $state);
+    return reset($state);
 }
 
 
 function stop_process($pid) {
-  settype($pid, 'integer');
-  exec("kill ".$pid);
+    settype($pid, 'integer');
+    exec("kill ".$pid);
 }
 
 
 function hard_stop_process($pid) {
-  settype($pid, 'integer');
-  exec("kill -9 ".$pid);
+    settype($pid, 'integer');
+    exec("kill -9 ".$pid);
 }
 
 

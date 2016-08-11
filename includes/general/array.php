@@ -20,98 +20,98 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-*/
+ */
 
 
 function array_keys_exist($keys, $array) {
-  foreach ($keys as $key) {
-    if (!array_key_exists($key, $array)) {
-      return FALSE;
+    foreach ($keys as $key) {
+        if (!array_key_exists($key, $array)) {
+            return FALSE;
+        }
     }
-  }
-  return TRUE;
+    return TRUE;
 }
 
 
 function keyify($key, $value) {
-  return array($key => $value);
+    return array($key => $value);
 }
 
 
 function get_fields($array, $fields) {
-  if (!is_array($array)) { return FALSE; }
-  return array_intersect_key($array, array_flip($fields));
+    if (!is_array($array)) { return FALSE; }
+    return array_intersect_key($array, array_flip($fields));
 }
 
 
 function key_by_name($arr) {
-  return array_combine($arr, $arr);
+    return array_combine($arr, $arr);
 }
 
 
 function get_fields_ordered_numeric($array, $fields) {
-  $ret = array();
-  foreach ($fields as $field) {
-    $ret[] = (array_key_exists($field, $array)) ? $array[$field] : '';
-  }
-  return $ret;
+    $ret = array();
+    foreach ($fields as $field) {
+        $ret[] = (array_key_exists($field, $array)) ? $array[$field] : '';
+    }
+    return $ret;
 }
 
 
 function array_flatten($arr) {
-  $ret = array();
-  foreach ($arr as $el) {
-    if (is_array($el)) {
-      $ret = array_merge($ret, array_flatten($el));
+    $ret = array();
+    foreach ($arr as $el) {
+        if (is_array($el)) {
+            $ret = array_merge($ret, array_flatten($el));
+        }
+        else {
+            $ret[] = $el;
+        }
     }
-    else {
-      $ret[] = $el;
-    }
-  }
-  return $ret;
+    return $ret;
 }
 
 
 function array_numeric_nokeys($arr) {
-  $out = array();
-  if (is_array($arr)) {
-    foreach ($arr as $value) {
-      settype($value, "integer");
-      $out[] = $value;
+    $out = array();
+    if (is_array($arr)) {
+        foreach ($arr as $value) {
+            settype($value, "integer");
+            $out[] = $value;
+        }
     }
-  }
-  return $out;
+    return $out;
 }
 
 
 function over_zero($x) {
-  if (is_array($x)) {
-    return array_filter($x, 'over_zero');
-  }
-  return ($x > 0) ? $x : 0;
+    if (is_array($x)) {
+        return array_filter($x, 'over_zero');
+    }
+    return ($x > 0) ? $x : 0;
 }
 
 
 function not_empty($x) {
-  if (is_array($x)) {
-    return array_filter($x, 'not_empty');
-  }
-  return $x;
+    if (is_array($x)) {
+        return array_filter($x, 'not_empty');
+    }
+    return $x;
 }
 
 
 function backtick_key_equals_value(&$item, $key, $table = '') {
-  $item = ($table != '') ? "`".$table."`.`".$key."`='".$item."'" : "`".$key."`='".$item."'";
+    $item = ($table != '') ? "`".$table."`.`".$key."`='".$item."'" : "`".$key."`='".$item."'";
 }
 
 
 function key_equals_value(&$item, $key) {
-  $item = $key."='".$item."'";
+    $item = $key."='".$item."'";
 }
 
 
 function key_colon_value(&$item, $key) {
-  $item = $key.": ".$item."";
+    $item = $key.": ".$item."";
 }
 
 ?>

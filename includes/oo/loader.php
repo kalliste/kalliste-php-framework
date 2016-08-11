@@ -20,18 +20,18 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-*/
+ */
 
 require_once("includes/oo/orm.php");
 
 function kloader($class, $path = "includes/models/") {
-  $file = $path.$class.".php";
-  if (file_exists($file)) {
-    require_once($file);
-  }
-  else {
-    eval("class $class extends kORM {}");
-  }
+    $file = $path.$class.".php";
+    if (file_exists($file)) {
+        require_once($file);
+    }
+    else {
+        eval("class $class extends kORM {}");
+    }
 }
 
 ?>

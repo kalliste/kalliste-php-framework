@@ -20,29 +20,29 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
-*/
+ */
 
 require_once("includes/general/request.php");
 require_once("includes/oo/retro.php");
 
 abstract class kController {
 
-  function __construct() {
-    $class = get_called_class();
-    $methods = get_class_methods($class);
-    foreach ($methods as $method) {
-      if ($method{0} != '_') {
-        $rmethod = new ReflectionMethod($class, $method);
-        $rparams = $rmethod->getParameters();
-        $params = array();
-        foreach ($rparams as $param) {
-          $params[] = $param->getName();
-        }
-        register_action($method, array($this, $method), $params);
-      }
-    }    
-  }
- 
+    function __construct() {
+        $class = get_called_class();
+        $methods = get_class_methods($class);
+        foreach ($methods as $method) {
+            if ($method{0} != '_') {
+                $rmethod = new ReflectionMethod($class, $method);
+                $rparams = $rmethod->getParameters();
+                $params = array();
+                foreach ($rparams as $param) {
+                    $params[] = $param->getName();
+                }
+                register_action($method, array($this, $method), $params);
+            }
+        }    
+    }
+
 }
 
 ?>
